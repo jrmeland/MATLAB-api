@@ -25,36 +25,37 @@ obj.data{surfaceIndex}.yaxis = ['y' num2str(ysource)];
 
 %-------------------------------------------------------------------------%
 
-%-surface type-%
-if ~isvector(image_data.XData) || ~isvector(image_data.YData)
-    obj.data{surfaceIndex}.type = 'scatter3d';
-else
+% check for 3D
+if any(nonzeros(image_data.ZData))
+    
+    %-surface type-%
     obj.data{surfaceIndex}.type = 'surface';
-end
-
-%-------------------------------------------------------------------------%
-
-%-surface x-%
-obj.data{surfaceIndex}.x = image_data.XData;
-
-if strcmp(obj.data{surfaceIndex}.type,'scatter3d')
-    obj.data{surfaceIndex}.x = reshape(obj.data{surfaceIndex}.x,1,size(obj.data{surfaceIndex}.x,1)*size(obj.data{surfaceIndex}.x,2));
-end
-%-------------------------------------------------------------------------%
-
-%-surface y-%
-obj.data{surfaceIndex}.y = image_data.YData;
-
-if strcmp(obj.data{surfaceIndex}.type,'scatter3d')
-obj.data{surfaceIndex}.y = reshape(obj.data{surfaceIndex}.y,1,size(obj.data{surfaceIndex}.y,1)*size(obj.data{surfaceIndex}.y,2));
-end
-%-------------------------------------------------------------------------%
-
-%-surface z-%
-obj.data{surfaceIndex}.z = image_data.ZData;  
-
-if strcmp(obj.data{surfaceIndex}.type,'scatter3d')
-    obj.data{surfaceIndex}.z = reshape(image_data.ZData,1,size(image_data.ZData,1)*size(image_data.ZData,2));    
+    
+    %---------------------------------------------------------------------%
+    
+    %-surface x-%
+    obj.data{surfaceIndex}.x = image_data.XData;
+    
+    %---------------------------------------------------------------------%
+    
+    %-surface y-%
+    obj.data{surfaceIndex}.y = image_data.YData;
+    
+    %---------------------------------------------------------------------%
+    
+    %-surface z-%
+    obj.data{surfaceIndex}.z = image_data.ZData;
+    
+else
+    
+    %-surface type-%
+    obj = updateImage(obj, surfaceIndex);
+    
+    %-surface x-%
+    obj.data{surfaceIndex}.x = image_data.XData(1,:);
+    
+    %-surface y-%
+    obj.data{surfaceIndex}.y = image_data.YData(:,1);
 end
 
 %-------------------------------------------------------------------------%
@@ -71,11 +72,6 @@ obj.data{surfaceIndex}.showscale = false;
 
 %-surface visible-%
 obj.data{surfaceIndex}.visible = strcmp(image_data.Visible,'on');
-
-%-------------------------------------------------------------------------%
-
-%-surface reversescale-%
-obj.data{surfaceIndex}.reversecale = false;
 
 %-------------------------------------------------------------------------%
 

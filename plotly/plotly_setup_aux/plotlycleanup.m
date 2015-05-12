@@ -5,10 +5,10 @@ function removed = plotlycleanup
 % initialize output
 removed = {};
 
-%----REMOVE FILES----%
+%----REMOVE WRAPPER FILES----%
 REMOVEFILES = {'plotly.m'};
 
-%----REMOVE FOLDERS----%
+%----REMOVE WRAPPER FOLDERS----%
 REMOVEFOLDERS = {'fig2plotly_aux'};
 
 %----check for local Plotly instances----%
@@ -26,13 +26,28 @@ catch exception %locating plotly error catch...
     return
 end
 
+% plotly toolbox directory
+plotlyToolboxDir = fullfile(matlabroot,'toolbox','plotly');
+
 % find the location of all plotly/ directories
-plotlyDirs = findPlotlyDirs(plotlyScriptDirs);
+dircount = 1; 
+for d = 1:length(plotlyScriptDirs)
+    %parse filepath string at the Plotly directory
+    plotlyLoc = strfind(fileparts(plotlyScriptDirs{d}),fullfile('MATLAB-api-master','plotly'));
+    plotlyToolboxLoc = strfind(fileparts(plotlyScriptDirs{d}),plotlyToolboxDir); 
+    if ~isempty(plotlyLoc)
+        plotlyDirs{dircount} = fullfile(plotlyScriptDirs{d}(1:plotlyLoc-1),'MATLAB-api-master','plotly');
+        dircount = dircount + 1; 
+    elseif ~isempty(plotlyToolboxLoc)
+        plotlyDirs{dircount} = plotlyToolboxDir;
+        dircount = dircount + 1; 
+    end
+end
 
 for d = 1:length(plotlyDirs)
     
     % add plotlydirs to searchpath (will be removed in future once handled by plotlyupdate)
-    addpath(genpath(plotlyDirs{d})); 
+    addpath(genpath(plotlyDirs{d}));
     
     % delete files from plotly directory
     removefiles = fullfile(plotlyDirs{d}, REMOVEFILES);
@@ -44,16 +59,15 @@ for d = 1:length(plotlyDirs)
         
         if exist(removefiles{f},'file')
             delete(removefiles{f});
+            % update removed list
+            removed = [removed removefiles{f}];
         end
         
         % add removefiles filepath back to searchpath
         addpath(fileparts(removefiles{f}));
         
     end
-    
-    % update removed list
-    removed = [removed removefiles];
-    
+
     % remove folders from plotly directory
     removefolders = fullfile(plotlyDirs{d},REMOVEFOLDERS);
     
@@ -66,7 +80,7 @@ for d = 1:length(plotlyDirs)
             %delete folder/subfolders
             try
                 status = rmdir(removefolders{f},'s');
-                
+
                 if (status == 0)
                     error('plotly:deletePlotlyAPI',...
                         ['\n\nShoot! It looks like something went wrong removing the Plotly API ' ...
@@ -75,11 +89,10 @@ for d = 1:length(plotlyDirs)
                 end
                 
                 % update removed list
-                removed = [removed removefolders];
-                
+                removed = [removed removefolders{f}];
+ 
             end
         end
     end   
 end
-
 end

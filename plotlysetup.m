@@ -85,7 +85,7 @@ if(~is_octave)
         if(strcmpi(overwrite,'y'))
             
             %move a copy of the Plotly api to matlab root directory
-            [status, ~, messid] = copyfile(plotlyFolderPath,plotlyToolboxPath);
+            [status, msg, messid] = copyfile(plotlyFolderPath,plotlyToolboxPath);
             %check that the plotly api was copied to the matlab root toolbox directory
             if (status == 0)
                 if(~strcmp(messid, 'MATLAB:COPYFILE:SourceAndDestinationSame'))
@@ -134,7 +134,7 @@ if(~is_octave)
     end
     
 else %if octave
-    display('\nOctave users: Automatic Plotly API embedding coming soon!\n');
+    fprintf('\n\nOctave users: Automatic Plotly API embedding coming soon!\n\n');
 end %end check for matlab...
 
 try %save user credentials

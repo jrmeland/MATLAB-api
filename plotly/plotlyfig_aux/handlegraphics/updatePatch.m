@@ -69,7 +69,11 @@ obj.data{patchIndex}.yaxis = ['y' num2str(ysource)];
 %-------------------------------------------------------------------------%
 
 %-patch type-%
-obj.data{patchIndex}.type = 'scatter';
+if any(nonzeros(patch_data.ZData))
+    obj.data{patchIndex}.type = 'scatter3d';
+else
+    obj.data{patchIndex}.type = 'scatter'; 
+end
 
 %-------------------------------------------------------------------------%
 
@@ -103,6 +107,24 @@ end
 
 %-------------------------------------------------------------------------%
 
+%-patch z-%
+if any(nonzeros(patch_data.ZData))
+    zdata = patch_data.ZData;
+    
+    if isvector(ydata)
+        obj.data{patchIndex}.z = [zdata' zdata(1)];
+    else
+        ztemp = reshape(zdata,[],1);
+        znew = [];
+        for n = 1:size(zdata,2)
+            znew = [znew ; zdata(:,n) ; zdata(1,n); NaN];
+        end
+        obj.data{patchIndex}.z = znew;
+    end
+end
+
+%-------------------------------------------------------------------------%
+
 %-patch name-%
 if ~isempty(patch_data.DisplayName);
     obj.data{patchIndex}.name = patch_data.DisplayName;
@@ -118,7 +140,7 @@ obj.data{patchIndex}.visible = strcmp(patch_data.Visible,'on');
 %-------------------------------------------------------------------------%
 
 %-patch fill-%
-obj.data{patchIndex}.fill = 'tonexty';
+obj.data{patchIndex}.fill = 'tozeroy';
 
 %-PATCH MODE-%
 if ~strcmpi('none', patch_data.Marker) && ~strcmpi('none', patch_data.LineStyle)
@@ -147,7 +169,21 @@ obj.data{patchIndex}.line = extractPatchLine(patch_data);
 
 %-patch fillcolor-%
 fill = extractPatchFace(patch_data);
-obj.data{patchIndex}.fillcolor = fill.color;
+
+if strcmp(obj.data{patchIndex}.type,'scatter');
+    obj.data{patchIndex}.fillcolor = fill.color; 
+else
+    obj.data{patchIndex}.surfacecolor = fill.color;
+end
+
+%-------------------------------------------------------------------------%
+
+%-surfaceaxis-%
+if strcmp(obj.data{patchIndex}.type,'scatter3d');
+    minstd = min([std(patch_data.XData) std(patch_data.YData) std(patch_data.ZData)]);
+    ind = find([std(patch_data.XData) std(patch_data.YData) std(patch_data.ZData)] == minstd)-1;
+    obj.data{patchIndex}.surfaceaxis = ind; 
+end
 
 %-------------------------------------------------------------------------%
 

@@ -1,3 +1,3 @@
 function version = plotly_version()
-    version = '1.3.29';
+    version = '2.1.6';
 end

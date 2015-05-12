@@ -34,7 +34,7 @@ end
 
 % remote Plotly API MATLAB Library url
 remote = ['https://raw.githubusercontent.com/plotly/MATLAB-api/',...
-          'plotlyclass/README.md'];
+          'master/README.md'];
 
 % remote Plotly API MATLAB Library
 try
@@ -67,8 +67,28 @@ catch exception
     return
 end
 
+% plotly toolbox directory
+plotlyToolboxDir = fullfile(matlabroot,'toolbox','plotly');
+
 % find the location of all plotly/ directories
-plotlyDirs = findPlotlyDirs(plotlyScriptDirs);
+dircount = 1; 
+plotlyDirs = {}; 
+for d = 1:length(plotlyScriptDirs)
+    %parse filepath string at the Plotly directory
+    plotlyLoc = strfind(fileparts(plotlyScriptDirs{d}),fullfile('MATLAB-api-master','plotly'));
+    plotlyToolboxLoc = strfind(fileparts(plotlyScriptDirs{d}),plotlyToolboxDir); 
+    if ~isempty(plotlyLoc)
+        plotlyDirs{dircount} = fullfile(plotlyScriptDirs{d}(1:plotlyLoc-1),'MATLAB-api-master','plotly');
+        dircount = dircount + 1; 
+    elseif ~isempty(plotlyToolboxLoc)
+        plotlyDirs{dircount} = plotlyToolboxDir;
+        dircount = dircount + 1; 
+    end
+end
+
+if isempty(plotlyDirs)
+    error('It seems your plotly wrapper directory structure has changed. Update aborted.'); 
+end
 
 %----update if necessary----%
 if strcmp(pvLocal,pvRemote)
@@ -120,7 +140,7 @@ else
                     fprintf(['Downloading the Plotly API Matlab Library v.' pvRemote ' ... ']);
                 end
                 
-                newPlotlyUrl = 'https://github.com/plotly/MATLAB-api/archive/plotlyclass.zip';
+                newPlotlyUrl = 'https://github.com/plotly/MATLAB-api/archive/master.zip';
                 newPlotlyZip = fullfile(plotlyUpdateDir,['plotlyupdate_' pvRemote '.zip']);
                 
                 %download from url
@@ -165,10 +185,10 @@ else
                 end
                 
                 % new Plotly directory
-                newPlotlyDir = fullfile(plotlyUpdateDir,'MATLAB-api-plotlyclass','plotly');
+                newPlotlyDir = fullfile(plotlyUpdateDir,'MATLAB-api-master','plotly');
                 
                 % files in Plotly repo root
-                repoRoot = dir(fullfile(plotlyUpdateDir,'MATLAB-api-plotlyclass'));
+                repoRoot = dir(fullfile(plotlyUpdateDir,'MATLAB-api-master'));
                 
                 % files not to be included
                 repoExclude = {'.','..','.gitignore','plotly'};
@@ -177,13 +197,10 @@ else
                 d = 1;
                 for r = 1:length(repoRoot);
                     if(isempty(intersect(repoRoot(r).name,repoExclude)))
-                        auxFiles{d} = fullfile(plotlyUpdateDir,'MATLAB-api-plotlyclass',repoRoot(r).name);
+                        auxFiles{d} = fullfile(plotlyUpdateDir,'MATLAB-api-master',repoRoot(r).name);
                         d = d+1;
                     end
                 end
-                
-                % plotly toolbox directory
-                plotlyToolboxDir = fullfile(matlabroot,'toolbox','plotly');
                 
                 % remove old plotlyclean scripts
                 pcScripts = which('plotlycleanup.m','-all');
@@ -193,12 +210,12 @@ else
                     % remove plotlycleanup path from searchpath 
                     rmpath(fileparts(pcScripts{d}));
                     
-                    % delete plotlycleanup
+                    % delete plotlycleanup!
                     delete(pcScripts{d});
                     
                     % add plotlycleanup path to searhpath
                     addpath(fileparts(pcScripts{d}));
-                    
+
                 end
                 
                 % replace the old Plotly with the new Plotly
@@ -220,9 +237,11 @@ else
                     % copy actual Plotly API Matlab Library
                     copyfile(newPlotlyDir,plotlyDirs{d},'f');
                     
-                    % add new scripts to path
+                    % add new scripts to path!
                     addpath(genpath(plotlyDirs{d}));
                     
+                    %rehash toolbox
+                    rehash toolboxreset
                 end
                 
                 if verbose
@@ -260,7 +279,7 @@ else
                     end
                 end
             catch exception
-                fprintf(['\n\nAn error occured while cleaning up the outdated Plotly scripts. Please\n',...
+                fprintf([exception '\n\nAn error occured while cleaning up the outdated Plotly scripts. Please\n',...
                     'check your write permissions for your outdated Plotly directories with \n',...
                     'your system admin. Contact chuck@plot.ly for more information.\n\n']);
             end
@@ -323,13 +342,13 @@ else
         if(strcmpi(overwrite,'y'))
             if verbose
                 if nargout
-                    exception = plotlyupdate('verbose','nocheck');
+                    plotlyupdate('verbose','nocheck');
                 else
                     plotlyupdate('verbose','nocheck');
                 end
             else
                 if nargout
-                    exception = plotlyupdate('nocheck');
+                    plotlyupdate('nocheck');
                 else
                     plotlyupdate('nocheck');
                 end
