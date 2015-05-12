@@ -7,7 +7,7 @@ classdef testplotlysetup < matlab.unittest.TestCase
         creds = loadplotlycredentials;
         config = loadplotlyconfig;
         username = 'test_user_name';
-        api_key = 'test_api_keu';
+        api_key = 'test_api_key';
         stream_ids = {'test_stream_key1','test_stream_key2'};
         plotly_domain = 'test_plotly_domain';
         plotly_streaming_domain = 'test_plotly_streaming_domain';
@@ -61,7 +61,7 @@ classdef testplotlysetup < matlab.unittest.TestCase
                 existed = false;
             end
             plotlysetup(testCase.username,testCase.api_key);
-            actual = exist(fullfile(plotlyToolboxDir,'plotly.m'),'file');
+            actual = exist(fullfile(plotlyToolboxDir, 'plotly_aux', 'plotly.m'),'file');
             expected = 2;
             testCase.verifyEqual(actual,expected);
             if ~existed
@@ -493,6 +493,69 @@ classdef testplotlysetup < matlab.unittest.TestCase
                 rmdir(plotlyToolboxDir,'s');
             end
         end
+
+        function testSigninCreds(testCase)
+            
+            % the user is signed in using the specified credentials
+            
+            % signin as test user
+            signin(testCase.username,testCase.api_key, testCase.plotly_domain)
+            
+            %REQUIRES USER INPUT:
+            fprintf('\n\nTESTING OVERWRITE: HIT Y + ENTER\n\n');
+            
+            %run plotlysetup with new config
+            plotlysetup('new_username', 'new_api_key');
+            
+            %retrieve the updated credentials/config
+            [actual_username, actual_api_key, actual_domain] = signin; 
+            
+            testCase.verifyEqual(actual_username, 'new_username');
+            testCase.verifyEqual(actual_api_key, 'new_api_key');
+            testCase.verifyEqual(actual_domain, testCase.plotly_domain);
+            
+        end     
+        
+        function testSigninCredsAndConfig(testCase)
+            
+            % the user is signed in using the specified credentials/config 
+            
+            % signin as test user
+            signin(testCase.username,testCase.api_key, testCase.plotly_domain)
+            
+            %REQUIRES USER INPUT:
+            fprintf('\n\nTESTING OVERWRITE: HIT Y + ENTER\n\n');
+            plotlysetup('new_username', 'new_api_key', 'plotly_domain', 'new_domain');
+            
+            %retrieve the updated credentials/config
+            [actual_username, actual_api_key, actual_domain] = signin; 
+            
+            testCase.verifyEqual(actual_username, 'new_username');
+            testCase.verifyEqual(actual_api_key, 'new_api_key');
+            testCase.verifyEqual(actual_domain, 'new_domain');
+            
+        end      
+        
+        function testSigninCredsAndStreamConfig(testCase)
+            
+            % if the base domain is not provided, the user's domain remains
+            % the same as it was before the setup. 
+            
+            % signin as test user
+            signin(testCase.username,testCase.api_key, testCase.plotly_domain)
+            
+            %REQUIRES USER INPUT:
+            fprintf('\n\nTESTING OVERWRITE: HIT Y + ENTER\n\n');
+            plotlysetup('new_username', 'new_api_key', 'plotly_stream_domain', 'new_domain');
+            
+            %retrieve the updated credentials/config
+            [actual_username, actual_api_key, actual_domain] = signin; 
+            
+            testCase.verifyEqual(actual_username, 'new_username');
+            testCase.verifyEqual(actual_api_key, 'new_api_key');
+            testCase.verifyEqual(actual_domain, testCase.plotly_domain);
+            
+        end 
     end
 end
 
