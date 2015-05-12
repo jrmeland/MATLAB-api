@@ -1,4 +1,4 @@
-function plotlysetup(username, api_key, varargin)
+function exception = plotlysetup(username, api_key, varargin)
 
 % CALL: plotlysetup('username','api_key','kwargs'[optional]);
 % WHERE: kwargs are of the form ..,'property,value,'property',value,...
